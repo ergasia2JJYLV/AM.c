@@ -9,6 +9,7 @@ extern int AM_errno;
 #define AME_OK 0
 #define AME_EOF -1
 //TODO: Add your error codes
+#define AME_ERROR_OPEN_INDEX -2
 
 #define EQUAL 1
 #define NOT_EQUAL 2
