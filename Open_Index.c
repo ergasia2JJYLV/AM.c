@@ -7,6 +7,10 @@
 
 struct FileInfo{
   int i;
+  int keytype;
+  int keysize;
+  int datatype;
+  int datasize;
 };
 
 typedef struct FileInfo FileInfo;
@@ -33,6 +37,24 @@ int AM_OpenIndex(char *fileName)
     }
     printf("fuji\n" );
   }
+  
+  // ARXIKOPOIHSH B+ dentrou
+  void *block;
+  if(BF_ReadBlock(fileDesc,0, &block)<0){
+      fprintf(stderr,"can't read the file #%d \n",fileDesc);
+      return AM_errno=AM_ERCREATE;
+  }
+  
+  // type string =0  , int = 1, float = 2 
+  //  string max size =255, int/float =4
+
+  // key type-size
+  OpenFile[i].keytype=((int*)block)[0]; 
+  OpenFile[i].keysize=((int*)block)[1];
+  // value type-size
+  OpenFile[i].datatype=((int*)block)[2];
+  OpenFile[i].datasize=((int*)block)[3];
+  printf("%d %d %d %d \n", OpenFile[i].keytype, OpenFile[i].keysize, OpenFile[i].datatype, OpenFile[i].datasize);
   printf("BFS is %d\n",bfs );
   return OpenFile[i].i;
 }
