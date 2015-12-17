@@ -8,9 +8,9 @@
 struct FileInfo{
   int i;
   int keytype;
-  int keysize;
   int datatype;
-  int datasize;
+  int datacapacity; // plh8os kleidiwn+data pou xwrane se ena block 
+  int keycapacity; // plh8os kleidiwn pou xwrane se ena block
 };
 
 typedef struct FileInfo FileInfo;
@@ -50,11 +50,11 @@ int AM_OpenIndex(char *fileName)
 
   // key type-size
   OpenFile[i].keytype=((int*)block)[0]; 
-  OpenFile[i].keysize=((int*)block)[1];
+  OpenFile[i].datatype=((int*)block)[1];
   // value type-size
-  OpenFile[i].datatype=((int*)block)[2];
-  OpenFile[i].datasize=((int*)block)[3];
-  printf("%d %d %d %d \n", OpenFile[i].keytype, OpenFile[i].keysize, OpenFile[i].datatype, OpenFile[i].datasize);
+  OpenFile[i].keycapacity=((int*)block)[2];
+  OpenFile[i].datacapacity=((int*)block)[3];
+  printf("%d %d %d %d \n", OpenFile[i].keytype, OpenFile[i].datatype, OpenFile[i].keycapacity, OpenFile[i].datacapacity);
   printf("BFS is %d\n",bfs );
   return OpenFile[i].i;
 }
