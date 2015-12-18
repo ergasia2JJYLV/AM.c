@@ -118,16 +118,43 @@ int AM_CreateIndex(
 	// key type-size
 	((int*)block)[1]=datatype;	
 	// block capacity of key 
-	int capacity=(BLOCK_SIZE-2*sizeof(void*))/(sizeof(void*)+keysize);
+	int capacity=(BLOCK_SIZE-2*sizeof(int))/(sizeof(int)+keysize);
 	((int*)block)[2]=capacity;
 	// block capacity of data value 
-	int capacity=BLOCK_SIZE/(datasize+keysize);
+	capacity=BLOCK_SIZE/(datasize+keysize);
 	((int*)block)[3]=capacity;
+
 
 	if(BF_WriteBlock(fileDesc,0)<0){
 		fprintf(stderr,"can't Initialize the file #%d \n",fileDesc);
 		return AM_errno=AM_ERCREATE;
 	}
+
+
+
+	// INITIALIZE ROOT as empty
+
+	if(BF_AllocateBlock(fileDesc)<0){  
+		fprintf(stderr,"can't allocate %s \n",fileName);
+		return AM_errno=AM_ERCREATE;
+	}
+	if(BF_ReadBlock(fileDesc,1, &block)<0){
+			fprintf(stderr,"can't read the file #%d \n",fileDesc);
+			return AM_errno=AM_ERCREATE;
+	}
+
+
+	((int*)block)[0]=-1; 	// to -1 => to root einai adeio  	
+
+	if(BF_WriteBlock(fileDesc,1)<0){
+		fprintf(stderr,"can't Initialize the file #%d \n",fileDesc);
+		return AM_errno=AM_ERCREATE;
+	}
+
+
+
+
+
 	//Ending the creation
 	if(BF_CloseFile(fileDesc)<0){
 		fprintf(stderr,"can't close %s \n",fileName);
@@ -137,48 +164,3 @@ int AM_CreateIndex(
 	return AM_errno=AME_OK;
 }
 
-
-
-FileInfo OpenFile[MAXOPENFILES];
-int current_Open=0;
-
-int AM_OpenIndex(char *fileName)
-{
-  int bfs=BF_OpenFile(fileName);
-  if (bfs < 0)
-  {
-    BF_PrintError("Error opening file");
-    return AME_ERROR_OPEN_INDEX;
-  }
-  int i;
-  for (i =0; i< MAXOPENFILES ;i++)
-  {
-    if (OpenFile[i].i==0)
-    {
-      OpenFile[i].i=current_Open;
-      current_Open++;
-      break;
-    }
-    printf("fuji\n" );
-  }
-  
-  // ARXIKOPOIHSH B+ dentrou
-  void *block;
-  if(BF_ReadBlock(OpenFile[i].i,0, &block)<0){
-      fprintf(stderr,"can't read the file #%d \n",OpenFile[i].i);
-      return AM_errno=AM_ERCREATE;
-  }
-  
-  // type string =0  , int = 1, float = 2 
-  //  string max size =255, int/float =4
-
-  // key type-size
-  OpenFile[i].keytype=((int*)block)[0]; 
-  OpenFile[i].keysize=((int*)block)[1];
-  // value type-size
-  OpenFile[i].datatype=((int*)block)[2];
-  OpenFile[i].datasize=((int*)block)[3];
-  printf("%d %d %d %d \n", OpenFile[i].keytype, OpenFile[i].keysize, OpenFile[i].datatype, OpenFile[i].datasize);
-  printf("BFS is %d\n",bfs );
-  return OpenFile[i].i;
-}
