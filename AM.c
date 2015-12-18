@@ -1,31 +1,23 @@
-#include "BF.h"
+
 #include "AM.h"
+
+#include "Btree.h"
 #include "defn.h"
+#include "BF.h"
 #include <stdio.h>
 
-#define AM_ERCREATE -1
+
 #define STRINGSIZE	256
 #define MAXOPENFILES 20
 #define AME_ERROR_OPEN_INDEX -2
+#define AM_ERCREATE -2
+#define ROOTBLOCK	1
 
-#define MAXOPENFILES 20
-
-int AM_errno;
+int AM_errno;		// from extern in AM.h
 
 
-struct FileInfo{
-  int   i;
-  int   keytype;
-  int   datatype;
-  int   datacapacity; // plh8os kleidiwn+data pou xwrane se ena block 
-  int   keycapacity; // plh8os kleidiwn pou xwrane se ena block
-  node* root;         
-};
-
-typedef struct FileInfo FileInfo;
-
-FileInfo OpenFile[MAXOPENFILES];
-int current_Open=0;
+FileInfo	OpenFile[MAXOPENFILES];
+int 		current_Open=0;         //maybe not needed
 
 int AM_OpenIndex(char *fileName)
 {
@@ -76,42 +68,54 @@ int AM_OpenIndex(char *fileName)
     size=OpenFile[i].keytype;
   }
 
+ 
+  int keycapacity=OpenFile[i].keycapacity;
+
+  OpenFile[i].root=createTree(keycapacity,size);		// sto Btree.c
+  if(OpenFile[i].root==NULL){
+  	printf("Error with  tree creation\n");
+  	return -1;
+  }
+  if(createBranchesfromBlock(ROOTBLOCK,keycapacity,size,OpenFile[i].root)==NULL)	// anadromika ftiaxnei ta branches mexri kai ta data nodes
+  {
+  	printf("error creating branches\n");
+  	return AM_errno=AM_ERCREATE;
+  }
+
+  /*
+  // anadromika  auto to kommati???
   if(BF_ReadBlock(fileDesc,1, &block)<0){
       fprintf(stderr,"can't read the file #%d \n",fileDesc);
       return AM_errno=AM_ERCREATE;
   }
-
-
-  OpenFile[i].root  =malloc(sizeof(node)); // malloc rizas
-  OpenFile[i].root->block=malloc(sizeof(int)*(OpenFile[i].keycapacity+1));  // malloc pinaka int pou periexe block #
-  OpenFile[i].root->key=malloc(size*(OpenFile[i].keycapacity));             // malloc pinaka me keys 
-  OpenFile[i].root->branch=malloc(sizeof(Node)*(OpenFile[i].keycapacity+1));// malloc pinaka me ta branches;
-  if(OpenFile[i].root==NULL){
-    printf("error with memory allocation\n");
-    return AM_errno=AM_ERCREATE;
-  }
-  if(OpenFile[i].root->block==NULL){
-    printf("error with memory allocation\n");
-    return AM_errno=AM_ERCREATE;
-  }
-  if( OpenFile[i].root->key==NULL){
-    printf("error with memory allocation\n");
-    return AM_errno=AM_ERCREATE;
-  }
-  if(OpenFile[i].root->branch==NULL){
-    printf("error with memory allocation\n");
-    return AM_errno=AM_ERCREATE;
-  }
-
-  OpenFile[i].root->nextBlock=NULL;                                         // H riza exei dn exei next
-  OpenFile[i].root->checking=0;                                             // check ==0
+  // to prwto byte na einai panta anagnwristiko sta blocks??? px  -1 = adeio, 0=aplo fullo tou dentrou , 1= teleutaio prin ta data
 
   if(((int*)block)[0]==-1){   // root is empty
     int i;
+    
     for(i=0;i<keycapacity;i++){   // MHDENISE TA PANTA
 
-        OpenFile[i].root->branch[i]=0;
-        OpenFile[i].root->block[i]=0;
+        OpenFile[i].root->branch[i];
+        OpenFile[i].root->block[i]=-1;
+
+        if(size==sizeof(int)|| size==sizeof(float)){ 
+            OpenFile[i].root->key[i]==-1;
+        }
+        else{
+            OpenFile[i].root->key[i]=="";
+        }
+    }
+    // keycapacity +1 periptwsh
+    OpenFile[i].root->branch[i];		
+    OpenFile[i].root->block[i]=0;
+
+  }
+  else if(((int*)block)[0]==1){ // DATA NODE
+
+  	for(i=0;i<keycapacity;i++){  
+
+        OpenFile[i].root->branch[i]=	// ftiaxnei to Node pou einai sto block ((int*)block)[i+1]						
+        OpenFile[i].root->block[i]=((int*)block)[i+1];		// pare to number tou block gia th 8esh i
 
         if(size==sizeof(int)|| size==sizeof(float)){ 
             OpenFile[i].root->key[i]==0;
@@ -119,22 +123,34 @@ int AM_OpenIndex(char *fileName)
         else{
             OpenFile[i].root->key[i]=="";
         }
-    }
-    // keycapacity +1 periptwsh
-    OpenFile[i].root->branch[i]=0;
-    OpenFile[i].root->block[i]=0;
+  	}
+  }
+  else{    // KEY NODE
+  	for(i=0;i<keycapacity;i++){  
+
+        OpenFile[i].root->branch[i];						
+        OpenFile[i].root->block[i]=((int*)block)[i];		// pare to number tou block gia th 8esh i
+
+        if(size==sizeof(int)|| size==sizeof(float)){ 
+            OpenFile[i].root->key[i]==0;
+        }
+        else{
+            OpenFile[i].root->key[i]=="";
+        }
+  	}	
 
   }
-  else{ // pare ta data apo to block tou root ... 
-
-
-  }
+	*/
+  //^ anadromika  auto to kommati???
 
   printf("%d %d %d %d \n", OpenFile[i].keytype, OpenFile[i].datatype, OpenFile[i].keycapacity, OpenFile[i].datacapacity);
   printf("BFS is %d\n",bfs );
 
   return OpenFile[i].i;
 }
+
+
+
 
 
 int AM_CreateIndex(
@@ -277,4 +293,3 @@ int AM_CreateIndex(
 
 	return AM_errno=AME_OK;
 }
-
