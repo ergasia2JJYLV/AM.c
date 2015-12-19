@@ -251,11 +251,15 @@ void putTreeInBlock(Node* source, int keycapacity, int keysize, int fileDesc,int
 
 			memmove(block,source,sizeof(Node));		
 	
-			if(BF_WriteBlock(fileDesc,currentBlock)<0){			//grafei to block sto opoio evale to Record
+			if(BF_WriteBlock(fileDesc,blockDest)<0){			//grafei to block sto opoio evale to Record
 				fprintf(stderr,"can't write the file #%d \n",fileDesc);
 				//return -1;
 			}	
 			//return 0;
 		}
 	}
+	free(source->branch);
+	free(source->block);
+	free(source->key);
+	free(source);
 }

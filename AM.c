@@ -157,7 +157,7 @@ int AM_CloseIndex (int fileDesc){
 	for (i =0; i< MAXOPENFILES ;i++)
   {
     if (OpenFile[i].i==fileDesc){
-     	putTreeInBlock(&OpenFile[i]);
+     	putTreeInBlock(OpenFile[i].root,OpenFile[i].keycapacity,OpenFile[i].datatype,OpenFile[i].i,1);
       	return 0;
     }
   }
