@@ -9,7 +9,22 @@ extern int AM_errno;
 #define AME_OK 0
 #define AME_EOF -1
 //TODO: Add your error codes
-#define AME_ERROR_OPEN_INDEX -2
+#define AME_ERROR_CREATE_INDEX -2
+#define AME_ERROR_OPEN_INDEX -3
+#define AME_ERROR_DESTROY_INDEX -4
+#define AME_ERROR_CLOSE_INDEX -5
+#define AME_ERROR_INSERT_ENTRY -6
+#define AME_ERROR_OPEN_INDEXSCAN_FULL_ARRAY -7
+//#define ame openindexscan other errorrs
+
+
+//
+// #define ame find next entry other errorrs
+
+//
+
+#define AME_ERROR_CLOSE_INDEX_SCAN -8
+
 
 #define EQUAL 1
 #define NOT_EQUAL 2
