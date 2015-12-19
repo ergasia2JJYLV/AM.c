@@ -41,7 +41,7 @@ int AM_OpenIndex(char *fileName)
   
   // ARXIKOPOIHSH B+ dentrou
   void *block;
-  if(BF_ReadBlock(OpenFile[i].i,0, &block)<0){
+  if(BF_ReadBlock(bfs,0, &block)<0){
       fprintf(stderr,"can't read the file #%d \n",OpenFile[i].i);
       return AM_errno=AM_ERCREATE;
   }
@@ -76,7 +76,7 @@ int AM_OpenIndex(char *fileName)
   	printf("Error with  tree creation\n");
   	return -1;
   }
-  if(createBranchesfromBlock(ROOTBLOCK,OpenFile[i].i,keycapacity,size,OpenFile[i].root)==-2)	// anadromika ftiaxnei ta branches mexri kai ta data nodes
+  if(createBranchesfromBlock(ROOTBLOCK,bfs,keycapacity,size,OpenFile[i].root)==-2)	// anadromika ftiaxnei ta branches mexri kai ta data nodes
   {
   	printf("error creating branches\n");
   	return AM_errno=AM_ERCREATE;
