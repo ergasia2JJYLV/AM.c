@@ -33,6 +33,6 @@ typedef struct FileInfo FileInfo;
 
 
 
-Node  createTree(int keycapacity,int size);
-Node* createBranches(int fileDesc,int keycapacity,int size, Node * root);
+Node* createTree(int keycapacity,int size);
+int   createBranchesfromBlock(int blockSrc,int fileDesc,int keycapacity,int size, Node * root);
 #endif /* BTREE_H_ */
