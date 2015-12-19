@@ -9,10 +9,11 @@
 
 #define STRINGSIZE	256
 #define MAXOPENFILES 20
-#define AME_ERROR_OPEN_INDEX -2
-#define AM_ERCREATE -2
 #define ROOTBLOCK	1
 
+#define AME_ERROR_OPEN_INDEX -2
+#define AM_ERCREATE -1
+#define AM_NOT_OPENED -3
 int AM_errno;		// from extern in AM.h
 
 
@@ -32,7 +33,7 @@ int AM_OpenIndex(char *fileName)
   {
     if (OpenFile[i].i==0)
     {
-      OpenFile[i].i=current_Open;
+      OpenFile[i].i=bfs;    // keep FileDesc
       current_Open++;
       break;
     }
@@ -151,7 +152,19 @@ int AM_OpenIndex(char *fileName)
 
 
 
-
+int AM_CloseIndex (int fileDesc){
+	int i;
+	for (i =0; i< MAXOPENFILES ;i++)
+  {
+    if (OpenFile[i].i==fileDesc){
+     	putTreeInBlock(&OpenFile[i]);
+      	return 0;
+    }
+  }
+  if(i==MAXOPENFILES){
+  	return AM_errno=AM_NOT_OPENED;
+  }
+}
 
 int AM_CreateIndex(
   char *fileName, /* όνομα αρχείου */

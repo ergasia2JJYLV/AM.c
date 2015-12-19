@@ -1,7 +1,7 @@
 
 #include "Btree.h"
 #include <stdio.h>
-
+//#include "AM.h"
 
 Node* createTree(int keycapacity,int size){
 	Node * root;
@@ -117,7 +117,7 @@ int createBranchesfromBlock(int blockSrc,int fileDesc,int keycapacity,int size, 
 	  		createBranchesfromBlock(((int*)block)[i+1],fileDesc,keycapacity,size,&current->branch[i]);						
 	    	current->block[i]=((int*)block)[i+1];	
 	    	return 0;
-	 	 }
+	 	 }	// ??problem?? float always treated as int!
     }
 	if(size==sizeof(float)){
 	    float* nodekey=(float*)current->key;	
@@ -233,10 +233,29 @@ int createBranchesfromBlock(int blockSrc,int fileDesc,int keycapacity,int size, 
 		    current->block[i]=((int*)block)[i+1];	
 		    return 0;
 	    }
-
-
 	}
+}
 
+void putTreeInBlock(Node* source, int keycapacity, int keysize, int fileDesc,int blockDest){
+	int i;	
+	while(source->block[i]!=-1 &&  i<keycapacity){ // to be changed
+		putTreeInBlock(&(source->branch[i]),keycapacity,keysize,fileDesc,source->block[i]);
+		if(source->checking!=0) // an exei alla3ei kati kane update to block
+		{		
+			void *block;
+			int i=0;
+			if(BF_ReadBlock(fileDesc,blockDest, &block)<0){		// fernei to teleutaio block
+				fprintf(stderr,"can't read the file #%d \n",fileDesc);
+				//return -1;
+			}
 
-
+			memmove(block,source,sizeof(Node));		
+	
+			if(BF_WriteBlock(fileDesc,currentBlock)<0){			//grafei to block sto opoio evale to Record
+				fprintf(stderr,"can't write the file #%d \n",fileDesc);
+				//return -1;
+			}	
+			//return 0;
+		}
+	}
 }
