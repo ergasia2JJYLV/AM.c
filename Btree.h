@@ -5,15 +5,15 @@
 #include <stdio.h>
 #include <string.h>
 
-#define AM_ERROR_GETTING_BLOCKS -2
-#define MAXOPENFILES 20
-
+#define   AM_ERROR_GETTING_BLOCKS -2
+#define   MAXOPENFILES 20
+#define   KEYNODEHEADER  2
+#define   DATANODEHEADER 1
 
 struct Node{
-
+  int*           block; 
   void *         key;
-  struct Node*   branch;//
-  int*           block;  
+  struct Node*   branch;// 
   struct Node*   nextBlock;
   int            checking; //checking if block is/was used
 };
