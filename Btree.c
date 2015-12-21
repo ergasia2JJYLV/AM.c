@@ -263,36 +263,38 @@ int createBranchesfromBlock(int blockSrc,int fileDesc,int keycapacity,int keysiz
 	}
 }
 
-void putTreeInBlock(Node* source, int keycapacity, int keysize, int fileDesc,int blockDest){
+void putTreeInBlock(FileInfo* info,Node* current,int blockDest)
+{  // mporei na gine (FileInfo * , Node* current, int blockDest)
 	int i;	
-	if(source->branch!=NULL){	// insert keynode
+	if(current->branch!=NULL){	// insert keynode
 		int headblock=KEYNODEHEADER;
-		while(source->block[i]!=-1 &&  i<keycapacity){ // to be changed
-			putTreeInBlock(&(source->branch[i]),keycapacity,keysize,fileDesc,source->block[i]);
-			if(source->checking!=0) // an exei alla3ei kati kane update to block
+		while(current->block[i]!=-1 &&  i<info->keycapacity){ // to be changed
+			putTreeInBlock(info,&(current->branch[i]),current->block[i]);
+			if(current->checking!=0) // an exei alla3ei kati kane update to block
 			{		
+
 				void *block;
 				int i=0;
-				if(BF_ReadBlock(fileDesc,blockDest, &block)<0){		// fernei to teleutaio block
-					fprintf(stderr,"can't read the file #%d \n",fileDesc);
+				if(BF_ReadBlock(info->i,blockDest, &block)<0){		// fernei to teleutaio block
+					fprintf(stderr,"can't read the file #%d \n",info->i);
 					//return -1;
 				}
 				memmove(block,&headblock,sizeof(int));	
-				memmove((int*)(block+1),source->block,sizeof(int)*(keycapacity+1));	
+				memmove((int*)(block+1),current->block,sizeof(int)*(info->keycapacity+1));	
 
-				if(keysize==-1){
-					memmove((int*)(block+keycapacity+2),source->key,sizeof(int)*(keycapacity));	
+				if(info->keytype==-1){
+					memmove((int*)(block+info->keycapacity+2),current->key,sizeof(int)*(info->keycapacity));	
 	
 				}
-				else if (keysize==-2)
+				else if (info->keytype==-2)
 				{
-					memmove((int*)(block+keycapacity+2),source->key,sizeof(float)*(keycapacity));
+					memmove((int*)(block+info->keycapacity+2),current->key,sizeof(float)*(info->keycapacity));
 				}
 				else{
-					memmove((int*)(block+keycapacity+2),source->key,sizeof(char)*(keycapacity)*keysize);	
+					memmove((int*)(block+info->keycapacity+2),current->key,sizeof(char)*(info->keycapacity)*info->keytype);	
 				}
-				if(BF_WriteBlock(fileDesc,blockDest)<0){			//grafei to block sto opoio evale to Record
-					fprintf(stderr,"can't write the file #%d \n",fileDesc);
+				if(BF_WriteBlock(info->i,blockDest)<0){			//grafei to block sto opoio evale to Record
+					fprintf(stderr,"can't write the file #%d \n",info->i);
 					//return -1;
 				}	
 				//return 0;
@@ -302,32 +304,32 @@ void putTreeInBlock(Node* source, int keycapacity, int keysize, int fileDesc,int
 	}
 	else{ // insert datanode
 		int headblock=DATANODEHEADER;
-		while(source->block[i]!=-1 &&  i<keycapacity){
-			if(source->checking!=0) // an exei alla3ei kati kane update to block
+		while(current->block[i]!=-1 &&  i<info->keycapacity){
+			if(current->checking!=0) // an exei alla3ei kati kane update to block
 			{		
 				void *block;
 				int i=0;
-				if(BF_ReadBlock(fileDesc,blockDest, &block)<0){		// fernei to teleutaio block
-					fprintf(stderr,"can't read the file #%d \n",fileDesc);
+				if(BF_ReadBlock(info->i,blockDest, &block)<0){		// fernei to teleutaio block
+					fprintf(stderr,"can't read the file #%d \n",info->i);
 					//return -1;
 				}
 
 				memmove(block,&headblock,sizeof(int));	
-				memmove((int*)(block+1),source->block,sizeof(int)*(keycapacity+1));	
-				if(keysize==-1){
-					memmove((int*)(block+keycapacity+2),source->key,sizeof(int)*(keycapacity));		
+				memmove((int*)(block+1),current->block,sizeof(int)*(info->keycapacity+1));	
+				if(info->keytype==-1){
+					memmove((int*)(block+info->keycapacity+2),current->key,sizeof(int)*(info->keycapacity));		
 				}
-				else if (keysize==-2)
+				else if (info->keytype==-2)
 				{
-					memmove((int*)(block+keycapacity+2),source->key,sizeof(float)*(keycapacity));
+					memmove((int*)(block+info->keycapacity+2),current->key,sizeof(float)*(info->keycapacity));
 				}
 				else{
-					memmove((int*)(block+keycapacity+2),source->key,sizeof(char)*(keycapacity)*keysize);		
+					memmove((int*)(block+info->keycapacity+2),current->key,sizeof(char)*(info->keycapacity)*info->keytype);		
 				}
 					
 		
-				if(BF_WriteBlock(fileDesc,blockDest)<0){			//grafei to block sto opoio evale to Record
-					fprintf(stderr,"can't write the file #%d \n",fileDesc);
+				if(BF_WriteBlock(info->i,blockDest)<0){			//grafei to block sto opoio evale to Record
+					fprintf(stderr,"can't write the file #%d \n",info->i);
 					//return -1;
 				}	
 				//return 0;
@@ -336,8 +338,58 @@ void putTreeInBlock(Node* source, int keycapacity, int keysize, int fileDesc,int
 		}
 
 	}
-	free(source->branch);
-	free(source->block);
-	free(source->key);
-	free(source);
+	free(current->branch);
+	free(current->block);
+	free(current->key);
+	free(current);
+}
+
+Node * Btree_Insert(FileInfo* info,Node* current, void *key, void*data){
+	Node * temp=&info->root;
+	int i;
+	if(temp->branch!=NULL){ // anadromh tha ginei sto telos alliws prepei na kratame ta nodes pou perasame gia na ftasoume sta dedomena...
+		for(i=0;i<info->keycapacity;i++){
+			
+			/*
+			if(comparevalue(key,&temp->key[i])==0){ //key < temp->key[i];
+				temp=&temp->branch[i];
+				break;
+			}*/
+				
+		}
+		if(i==info->keycapacity){
+			temp=&temp->branch[i+1];
+		}
+		temp=Btree_Insert(info,current,key,data);	
+	/*	if(temp==NULL){ // an xwrese xwris provlhma aplws kane return;
+			
+			return NULL;
+		}
+		else{	// ama sou epistrafhke nea timh 
+			if(checknodespace(current,temp)){  // an xwraei valto 
+				//insert data
+				return NULL;
+				}
+			else{	 // alliws 3ekina split pros ta pisw
+				//split
+				// return new Node to previous level
+			}
+		}*/
+	}
+	else{
+	// i = block that data has to go in 
+		void* block;
+		if(BF_ReadBlock(info->i,temp->block[i], &block)<0){		// fernei to teleutaio block
+			fprintf(stderr,"can't read the file #%d \n",info->i);
+			return NULL;
+		}
+	//	if(checkblockspace(info,block)){ // an xwraei valto 
+			//insert data
+		//	return NULL;
+	//	}
+	//	else{	 // alliws 3ekina split pros ta pisw
+			//split
+			// return new Node to previous level
+	//	}
+	}
 }

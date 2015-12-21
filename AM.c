@@ -153,17 +153,19 @@ int AM_OpenIndex(char *fileName)
 
 
 int AM_CloseIndex (int fileDesc){
-	int i;
-	for (i =0; i< MAXOPENFILES ;i++)
-  {
-    if (OpenFile[i].i==fileDesc){
-     	putTreeInBlock(OpenFile[i].root,OpenFile[i].keycapacity,OpenFile[i].datatype,OpenFile[i].i,1);
+
+
+	int pos;
+	if((pos=AM_Check_Open(fileDesc))>=0){
+		putTreeInBlock(&OpenFile[pos],OpenFile[pos].root,1);
+     	//closeFILE[pos]
+     	// free FILEINFO
+      	// remove from array
       	return 0;
-    }
-  }
-  if(i==MAXOPENFILES){
-  	return AM_errno=AM_NOT_OPENED;
-  }
+	}
+	else{
+		return AM_errno=AM_NOT_OPENED;
+	}
 }
 
 int AM_CreateIndex(
@@ -305,4 +307,28 @@ int AM_CreateIndex(
 	}
 
 	return AM_errno=AME_OK;
+}
+
+
+int AM_InsertEntry(  int fileDesc,void *value1, void *value2){
+	int pos;
+	if((pos=AM_Check_Open(fileDesc))>=0){
+		Btree_Insert(&OpenFile[pos],&OpenFile[pos].root,value1,value2);
+		//check error?
+	}
+	else{
+		return AM_errno=AM_NOT_OPENED;
+	}
+
+}
+int AM_Check_Open(int fileDesc){
+	int i;
+	for (i =0; i< MAXOPENFILES ;i++){
+	    if (OpenFile[i].i==fileDesc){
+	      	return i;
+	    }
+ 	}
+ 	if(i==MAXOPENFILES){
+  		return AM_errno=AM_NOT_OPENED;
+ 	}
 }
